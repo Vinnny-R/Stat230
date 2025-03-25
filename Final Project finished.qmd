@@ -1,0 +1,112 @@
+---
+title: "Assignment 03"
+subtitle: "STAT 230 Spring 2025"
+author: "Jax Lehmann, Chibuzo Ifezue, Vincent Guminski"
+format:
+  html:
+    embed-resources: true
+---
+
+
+# Group members 
+
+What are your group members (up to 3 people)?
+
+Jax Lehmann, Chibuzo Ifezue, Vincent Guminski
+
+# Data
+
+What data set are you using?
+
+We are using a data set from Kaggle which covers the history of English football "soccer" in the Premiere League, from 1993 to current date.
+Data: Date (Numeric Discrete, Categorical Ordinal), Season (Numeric Discrete, Categorical Ordinal), HomeTeam (Categorical), AwayTeam (Categorical), FTH Goals (Numeric Discrete), FTA Goals (Numeric Discrete), FT Result (Categorical), HTH Goals (Numeric Discrete), HTA Goals (Numeric Discrete), HT Result (Categorical), Referee (Categorical), H Shots (Numeric Discrete), A Shots (Numeric Discrete), H Sot (Numeric Discrete), A Sot (Numeric Discrete), H Fouls (Numeric Discrete), A Fouls (Numeric Discrete), H Corners (Numeric Discrete) A Corners (Numeric Discrete), H Yellow (Numeric Discrete), A Yellow (Numeric Discrete), H Red (Numeric Discrete), A Red (Numeric Discrete), Display_Order (Numeric Discrete, Categorical Ordinal), League (Categorical)
+
+There is 25 variables in total. FTH and FTH represent Full Time Home and Full Time Away to depict the teams. H represents the Home team, A represents the Away team. SOT means Shots on Target. Yellow and Red represent card colors for how severe of a foul is inflicted. HT represents half-time and FT represents full-time. All of the data is soccer/football terms collected from match history.
+
+
+Read data in:
+
+
+```{r}
+library(tidyverse)
+England <- read_csv("Data/England CSV.csv")
+```
+
+
+# Questions
+
+What questions are you going to answer with this data set?
+
+PROVIDE AT LEAST TWO QUESTIONS -- ONE DESCRIPTIVE (FOR AT LEAST ONE NUMERIC VARIABLE) AND ONE CATEGORICAL (ADD A GROUP TO THE ANALYSIS OF YOUR CHOSEN NUMERIC VARIABLE)
+
+What is the average number of goals scored each match in the Premiere League for the home teams?
+# Descriptive Numeric
+How does the average number of fouls committed differ between home and away teams/does being home or away impact number of fouls?
+# Categorical Grouped
+
+# Plots
+
+Distribution of one numeric variable: plot a histogram of one numeric variable
+
+```{r}
+England <- England |>
+  mutate(total_goals = `FTH Goals` + `FTA Goals`)
+  
+England |> 
+ggplot(aes(x = total_goals))+
+  geom_histogram()
+
+```
+
+# Mean of Full-Time Home Goals/Gives average in addition to Histogram
+```{r}
+mean_home_goals <- mean(England$`FTH Goals`, na.rm = TRUE)
+mean_home_goals
+
+```
+
+Box plot of one numeric variable by one categorical variable: create a box plot of one numeric variable vs. one categorical variable ## Used two NUMERIC variables
+
+
+```{r}
+England |>
+  ggplot(aes(x = `H Fouls`, y = `A Fouls`)) +
+  geom_boxplot()
+```
+```{r}
+England |>
+  ggplot(aes(x = `H Fouls`, y = `A Fouls`)) +
+  geom_point(alpha = 0.6, color = "steelblue") +
+  geom_smooth(method = "lm", se = FALSE, color = "darkred") +
+  labs(
+    title = "Home vs Away Fouls with Trend Line",
+    x = "Home Team Fouls",
+    y = "Away Team Fouls"
+  ) +
+  theme_minimal()
+
+```
+
+# Anova 
+```{r}
+fouls_data <- England |>
+  select(`H Fouls`, `A Fouls`) |>
+  pivot_longer(cols = everything(), names_to = "team_type", values_to = "fouls") |>
+  mutate(team_type = ifelse(team_type == "H Fouls", "Home", "Away"))
+
+anova_model <- aov(fouls ~ team_type, data = fouls_data)
+summary(anova_model)
+```
+```{r}
+mean(England$`H Fouls`, na.rm = TRUE)
+mean(England$`A Fouls`, na.rm = TRUE)
+```
+
+```{r}
+lm_model <- lm(fouls ~ team_type, data = fouls_data)
+summary(lm_model)
+```
+
+```{r}
+boxplot(fouls ~ team_type, data = fouls_data, main = "Fouls by Team Type", ylab = "Fouls", xlab = "Team Type")
+```
